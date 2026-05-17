@@ -80,14 +80,16 @@ sudo systemctl --failed
 sudo journalctl -n 100
 sudo journalctl -u nginx
 ```
-RH world / traditional commands (/var/log/messages),modern Debian Equivalent (journalctl),descriptions / contexts
-tail -f /var/log/messages,journalctl -f,follows and displays new system logs in real time.
-cat /var/log/messages | grep -i error,journalctl -p err,"filters the entire log stream by ""Error"" priority levels."
-less /var/log/messages,journalctl,"opens a scrollable, chronological viewer of all system logs."
-tail -n 100 /var/log/messages,journalctl -n 100,views  the last 100 log lines.
-"grep ""nginx"" /var/log/messages",journalctl -u nginx,display logs generated only by a specific service (exp: Nginx).
-"awk -v d=""$(date -d '1 hour ago' +'%b %e %H:%M:%S')"" '$0 > d'","journalctl --since ""1 hour ago""",isolates logs from a specific timeframes.
-"sed -n '/Linux version/,$p' /var/log/messages",journalctl -b,hides previous logs and display only the current boot session.
+
+| RH world / traditional commands (`/var/log/messages`) | modern Debian Equivalent (`journalctl`) | descriptions / contexts |
+| :--- | :--- | :--- |
+| `tail -f /var/log/messages` | `journalctl -f` | follows and displays new system logs in real time. |
+| `cat /var/log/messages \| grep -i error` | `journalctl -p err` | filters the entire log stream by "Error" priority levels. |
+| `less /var/log/messages` | `journalctl` | opens a scrollable, chronological viewer of all system logs. |
+| `tail -n 100 /var/log/messages` | `journalctl -n 100` | views  the last 100 log lines. |
+| grep "nginx" /var/log/messages | `journalctl -u nginx` |  display logs generated only by a specific service (exp: Nginx). |
+| awk -v d="$(date -d '1 hour ago' +'%b %e %H:%M:%S')" '$0 > d' | `journalctl --since "1 hour ago"` | isolates logs from a specific timeframes. |
+| sed -n '/Linux version/,$p' /var/log/messages | `journalctl -b` | hides previous logs and display only the current boot session. |
 
 ## first imp rule
 
@@ -191,13 +193,12 @@ note: 1 means run it with 1 second intervals and watch for a few seconds.
 
 things to look for:
 
-```
 r  = processes waiting for CPU (should be in low)
 b  = processes in uninterruptible sleep waiting for IO (should be zero)
 wa = percentage CPU is waiting for IO (anything above 20% is concernings)
 si = swap in (memory being read from swap disk)
 so = swap out (memory being written to swap disk)
-```
+
 
 high wa means the disk is the bottleneck. everything else is waiting for reads and writes to finish.
 
@@ -227,9 +228,9 @@ ps aux --sort=-%cpu | head -20
 ```
 
 things to look for:
-- processes that dont recognize or shady
-- processes owned by wrong users
-- multiple copies of the same process running when there should be one
+*processes that dont recognize or shady
+*processes owned by wrong users
+*multiple copies of the same process running when there should be one
 
 check process tree to see parent and child relationships:
 
@@ -344,6 +345,7 @@ sudo tail -n 100 /var/log/auth.log
 ```
 
 checking nginx logs if web server is involved:
+
 ```
 sudo tail -n 100 /var/log/nginx/error.log
 sudo tail -n 100 /var/log/nginx/access.log
@@ -408,8 +410,6 @@ sudo journalctl --since "1 hour ago"
 
 ## what does each findings mean
 
-```
-
 | system metrics / issues | system admin action |
 | :--- | :--- |
 | high CPU usage | find and investigate the hungry process. |
@@ -420,9 +420,7 @@ sudo journalctl --since "1 hour ago"
 | errors in logs** | read them well, they usually tell exactly what was wrong. |
 | failed services** |  `systemctl status` to find out why it crashed. |
 
-```
-
----
+---------------------
 
 ## standard way to communicate with your team about above findings
 
@@ -438,7 +436,7 @@ exp : "i have checked X, Y, Z and they look ok. i am now diving into more detail
 ---
 
 ## common slowness causes in real work environments
-```
+
 1 runaway process eating 100% CPU
 2 memory leak slowly consuming all RAM until swap kicks in
 3 log files filling up the disk
@@ -448,6 +446,6 @@ exp : "i have checked X, Y, Z and they look ok. i am now diving into more detail
 7 network congestion or packet loss
 7 external attacks like DDoS attack overwhelming the network
 8 cron job running at peak hours using system resources
-```
+
 
 ---
