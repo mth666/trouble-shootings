@@ -6,9 +6,9 @@ scenario: Someone reported that the server is slow
 
 ## common diagnosis commands
 
-```
+
 # cpu
-```
+```bash
 top
 ps aux --sort=-%cpu | head -10
 ```
@@ -80,17 +80,14 @@ sudo systemctl --failed
 sudo journalctl -n 100
 sudo journalctl -u nginx
 ```
-## basic commands combos both Red hat world and Debian
-
-| RH world / traditional commands (`/var/log/messages`) | modern Debian Equivalent (`journalctl`) | descriptions / contexts |
-| :--- | :--- | :--- |
-| `tail -f /var/log/messages` | `journalctl -f` | follows and displays new system logs in real time. |
-| `cat /var/log/messages \| grep -i error` | `journalctl -p err` | filters the entire log stream by "Error" priority levels. |
-| `less /var/log/messages` | `journalctl` | opens a scrollable, chronological viewer of all system logs. |
-| `tail -n 100 /var/log/messages` | `journalctl -n 100` | views  the last 100 log lines. |
-| grep "nginx" /var/log/messages | `journalctl -u nginx` |  display logs generated only by a specific service (exp: Nginx). |
-| awk -v d="$(date -d '1 hour ago' +'%b %e %H:%M:%S')" '$0 > d' | `journalctl --since "1 hour ago"` | isolates logs from a specific timeframes. |
-| sed -n '/Linux version/,$p' /var/log/messages | `journalctl -b` | hides previous logs and display only the current boot session. |
+RH world / traditional commands (/var/log/messages),modern Debian Equivalent (journalctl),descriptions / contexts
+tail -f /var/log/messages,journalctl -f,follows and displays new system logs in real time.
+cat /var/log/messages | grep -i error,journalctl -p err,"filters the entire log stream by ""Error"" priority levels."
+less /var/log/messages,journalctl,"opens a scrollable, chronological viewer of all system logs."
+tail -n 100 /var/log/messages,journalctl -n 100,views  the last 100 log lines.
+"grep ""nginx"" /var/log/messages",journalctl -u nginx,display logs generated only by a specific service (exp: Nginx).
+"awk -v d=""$(date -d '1 hour ago' +'%b %e %H:%M:%S')"" '$0 > d'","journalctl --since ""1 hour ago""",isolates logs from a specific timeframes.
+"sed -n '/Linux version/,$p' /var/log/messages",journalctl -b,hides previous logs and display only the current boot session.
 
 ## first imp rule
 
@@ -102,6 +99,7 @@ always diagnose before you act. never restart things, never update packages, nev
 
 ss something using all the cpu processing powers?
 commands
+
 ```
 top
 ```
@@ -136,13 +134,13 @@ free -h
 ```
 
 things to look for:
-- available column : real free memory, not just the free column
-- swap usage : if swap is being used heavily the server is using disk as RAM which is extremely slow
+*available column : real free memory, not just the free column
+*swap usage : if swap is being used heavily the server is using disk as RAM which is extremely slow
 
 ```
 free -m
 ```
--m human-friendly formats
+note :  -m human-friendly formats
 
 if swap is heavily using, find what is eating RAM:
 
@@ -162,8 +160,8 @@ df -h
 ```
 
 things to look for:
-- any partition at 90% or above is a warning
-- any partition at 100% is an emergency, services will start failing silently
+*any partition at 90% or above is a warning
+*any partition at 100% is an emergency, services will start failing silently
 
 find which folder is eating space:
 
@@ -176,6 +174,7 @@ then find the fat folder:
 ```
 du -sh /var/*
 ```
+
 Note; a full disk causes all kinds of weird slowness, apps cant write logs, databases cant write data, tmp files cant be created. it breaks things in ways that don't obviously point to disk being the problems.
 
 ---
