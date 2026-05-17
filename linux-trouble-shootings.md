@@ -1,10 +1,10 @@
-# Nginx troubleshootings - old web contents after aeployment & newly deployed web app (Nginx) now showing up
+# Nginx troubleshootings - old web contents after deployments & newly deployed web app (Nginx) not showing up
 date : May 17th 2026
 scenario: developer deployed new code but website still showings old page contents.
 
 ---
 
-## The complaint
+## error complaint
 Developer says:
 > "I just deployed new code but the website is showing an old version. I restarted my app but nginx is still showing the old page."
 
@@ -150,9 +150,7 @@ checking the SELinux label on the folder:
 ```
 ls -lZ /var/www/myapp/
 ```
-
 the folder output showed:
-
 ```
 unconfined_u:object_r:var_t:s0
 ```
@@ -202,8 +200,7 @@ test again with curl:
 curl http://localhost
 ```
 
-should return the new page contents.
-test in browser and use hard refresh to ignore cache:
+should return the new page contents. so test again in browser and use hard refresh to ignore caches:
 
 ```
 CTRL + SHIFT + R
@@ -216,7 +213,7 @@ note : normal refresh uses cached version. hard refresh forces browser to get fr
 ## 9th report back to the Developer
 
 message:
-> "All fixes. Nginx was pointing at the wrong folder and SELinux needed to be configured to allow access to the new location. should be live now, give it a try and let me know if anything looks off."
+> "all fixes. Nginx was pointing at the wrong folder and SELinux needed to be configured to allow access to the new location. should be live now, give it a try and let me know if anything looks off."
 
 ---
 
@@ -253,8 +250,8 @@ ls -lZ /var/www/myapp/
 ```
 flags
 ls: List the files and folders.
--l: Use the long listing format. This shows permissions, owners, file size, and modification dates.
--Z: The star of the show. This tells ls to display the SELinux security labels (contexts) for every item.
+-l: use the long listing format. uhis shows permissions, owners, file size, and modification dates.
+-Z: this tells ls to display the SELinux security labels (contexts) for every items.
 ---
 
 ## lesson notes
@@ -279,7 +276,47 @@ ls -lZ                show SELinux labels on files
 semanage fcontext     write permanent SELinux policy for a path
 restorecon            apply SELinux policy to files immediately
 ```
-
 ---
+Additional Notes : 
+### robust Configuration & Path Isolation
+explicit path Targeting: when initializing custom directories, always use absolute paths or verify the working directory (pwd) to avoid accidental file placements.
 
-*Learned during on the job training — May 2026*
+```
+sudo mkdir -p /var/www/myapp
+sudo touch /var/www/myapp/index.html
+```
+### Beware of Configuration Overrides (conf.d)
+modern Nginx layouts use an include /etc/nginx/conf.d/*.conf; statement inside the main /etc/nginx/nginx.conf. if updates to the main file have no effect, look for overriding configuration files in the subdirectories
+```
+ls -la /etc/nginx/conf.d/
+```
+parent directory risks: stick to standard directories like /var/www/ or /usr/share/nginx/. if host code in non-standard roots (exp: /opt/myapp or /home/user/myapp), SELinux will block Nginx from navigating through the parent folder hierarchy, even if the application folder contexts are correct.
+clean header verification (curl -I)
+instead of dumping raw HTML/JS text strings across the terminal window, query the site's metadata headers. this allows to verify server state, cache headers, and file modification timestamps quickly.
+```
+curl -I http://localhost
+```
+### the real time SELinux auditor (audit2why)
+when SELinux blocks an operation silently, it writes a complex audit trail to system logs. instead of deciphering raw hex data, parse the last 100 log items into human readable configuration
+```
+sudo tail -n 100 /var/log/audit/audit.log | audit2why
+```
+final commands list table
+| Tasks | Commands | Operational Contexts |
+| :--- | :--- | :--- |
+| **back up config** | `sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak` | always protects states before modifications. |
+| **validate Syntax** | `sudo nginx -t` | mandatory check before reloading any services. |
+| **apply Changes** | `sudo systemctl reload nginx` | hot reloads configuration without droppings active TCP connections. |
+| **analyze Headers** | `curl -I http://localhost` | tests server responses natively while bypassing browser caches. |
+| **check SELinux** | `sudo getenforce` | verifies whether the kernel is actively enforcing security policies. |
+| **inspect labels** | `ls -lZ /var/www/myapp/` | displays permissions alongside SELinux context fields. |
+| **set Policy** | `sudo semanage fcontext -a -t httpd_sys_content_t "/var/www/myapp(/.*)?"` | writes a permanent type enforcement rule to the system database. |
+| **apply policy** | `sudo restorecon -R -v /var/www/myapp/` | live syncs on-disk folder labels to match the permanent policy database. |
+
+
+
+
+
+
+
+
