@@ -437,15 +437,22 @@ exp : "i have checked X, Y, Z and they look ok. i am now diving into more detail
 
 ## common slowness causes in real work environments
 
-1 runaway process eating 100% CPU
-2 memory leak slowly consuming all RAM until swap kicks in
-3 log files filling up the disk
-4 many concurrent users overwhelming the server
-5 external api the app depends on being slow or down
-6 database queries running slow due to missing indexes
-7 network congestion or packet loss
-7 external attacks like DDoS attack overwhelming the network
-8 cron job running at peak hours using system resources
+    runaway process eating 100% CPU
 
+    memory leak slowly consuming all RAM until swap kicks in
+
+    log files filling up the disk
+
+    many concurrent users overwhelming the server
+
+    external api the app depends on being slow or down
+
+    database queries running slow due to missing indexes
+
+    network congestion or packet loss
+
+    external attacks like DDoS attack overwhelming the network
+
+    cron job running at peak hours using system resources
 
 ---
