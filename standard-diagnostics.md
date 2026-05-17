@@ -7,43 +7,76 @@ scenario: Someone reported that the server is slow
 ## common diagnosis commands
 
 ```
-# CPU
+# cpu
+```
 top
 ps aux --sort=-%cpu | head -10
+```
 
-# RAM
+# RAM/Memory
+```
 free -h
 ps aux --sort=-%mem | head -10
+```
 
-# Disk space
+# disk space
+```
 df -h
 du -sh /*
+```
 
-# IO wait
+# io wait
+```
 vmstat 1
 iostat -x 1
-
-# Network
+```
+# network
+```
 ping 8.8.8.8
 traceroute 8.8.8.8
 ss -tunlp
 ss -tan | grep ESTABLISHED | wc -l
-
-# Load history
+```
+# load history list
+```
 uptime
 w
+```
 
-# Logs RH world
+# logs RH world
+```
 sudo tail -n 100 /var/log/messages
 sudo grep -i "error" /var/log/messages
 sudo systemctl --failed
-
-# Logs Debian world
-sudo tail -n 100 /var/log/journal
-sudo grep -i "error" /var/log/journal
+```
+### modern way: 
+```
+sudo journalctl -n 100 (reads from the binary journal)
+```
+### traditional way: 
+```
+sudo tail -n 100 /var/log/messages (reads from the text file
+```
+# logs Debian world (traditional text files) legacy logs (only exist if rsyslog/syslog is installed) 
+```
+sudo tail -n 100 /var/log/syslog
+sudo grep -i "error" /var/log/syslog
 sudo systemctl --failed
+```
+# logs modern Debian world way
+### old way:
+need to remember specific file paths (/var/log/syslog on Debian, /var/log/messages on RHEL) and use text tools like tail or grep.
+### new way: 
+no longer need to use path, use one unified engine (journalctl) across both operating systems, and it does the job.
 
+# modern world (Both Red hat world & Debian using systemd)
+```
+sudo journalctl -n 100
+sudo journalctl -p err
+sudo systemctl --failed
+```
 # Journal
+```
 sudo journalctl -n 100
 sudo journalctl -u nginx
 ```
@@ -51,13 +84,13 @@ sudo journalctl -u nginx
 
 | RH world / traditional commands (`/var/log/messages`) | modern Debian Equivalent (`journalctl`) | descriptions / contexts |
 | :--- | :--- | :--- |
-| **`tail -f /var/log/messages`** | `journalctl -f` | follows and displays new system logs in real time. |
-| **`cat /var/log/messages \| grep -i error`** | `journalctl -p err` | filters the entire log stream by "Error" priority levels. |
-| **`less /var/log/messages`** | `journalctl` | opens a scrollable, chronological viewer of all system logs. |
-| **`tail -n 100 /var/log/messages`** | `journalctl -n 100` | views  the last 100 log lines. |
-| *N/A (Complex grep filtering)* | `journalctl -u nginx` |  display logs generated only by a specific service (exp: Nginx). |
-| *N/A (time based grep parsing)* | `journalctl --since "1 hour ago"` | isolates logs from a specific timeframes. |
-| *N/A (reboot marker filtering)* | `journalctl -b` | Hides previous logs and shows only the current boot session. |
+| `tail -f /var/log/messages` | `journalctl -f` | follows and displays new system logs in real time. |
+| `cat /var/log/messages \| grep -i error` | `journalctl -p err` | filters the entire log stream by "Error" priority levels. |
+| `less /var/log/messages` | `journalctl` | opens a scrollable, chronological viewer of all system logs. |
+| `tail -n 100 /var/log/messages` | `journalctl -n 100` | views  the last 100 log lines. |
+| grep "nginx" /var/log/messages | `journalctl -u nginx` |  display logs generated only by a specific service (exp: Nginx). |
+| awk -v d="$(date -d '1 hour ago' +'%b %e %H:%M:%S')" '$0 > d' | `journalctl --since "1 hour ago"` | isolates logs from a specific timeframes. |
+| sed -n '/Linux version/,$p' /var/log/messages | `journalctl -b` | hides previous logs and display only the current boot session. |
 
 ## first imp rule
 
@@ -242,9 +275,9 @@ ping 8.8.8.8
 ```
 
 things to look for:
-- packet loss percentage, anything above 1% is worth investigating
-- response time consistency, big jumps between responses means delays
-- complete failure means no route to host
+*packet loss percentage, anything above 1% is worth investigating
+*response time consistency, big jumps between responses means delays
+*complete failure means no route to host
 
 trace the network path to find where packets are being drop:
 
@@ -252,7 +285,7 @@ trace the network path to find where packets are being drop:
 traceroute 8.8.8.8
 ```
 
-each line is one hop. need to looks reponse times suddenly jump or asterisks which mean no responses. 
+each line is one hop. need to looks reponse times suddenly jump or asterisks mean no responses. 
 
 checking open connections and listening ports:
 
@@ -378,15 +411,15 @@ sudo journalctl --since "1 hour ago"
 
 ```
 
-| System Metric / Issue | System Admin Action |
+| system metrics / issues | system admin action |
 | :--- | :--- |
-| **high CPU usage** | find and investigate the hungry process. |
+| high CPU usage | find and investigate the hungry process. |
 | **high RAM, swap in use** | find memory leak, plan about adding more RAM. |
-| **disk at 100%** | find and clean fat folders immediately. |
-| **high IO wait** | disk is bottleneck, check what is reading and writing heavily. |
-| **packet loss to 8.8.8.8** | network issues, report to network team. |
-| **errors in logs** | read them well, they usually tell exactly what was wrong. |
-| **failed services** |  `systemctl status` to find out why it crashed. |
+| disk at 100% | find and clean fat folders immediately. |
+| high IO wait | disk is bottleneck, check what is reading and writing heavily. |
+| packet loss to 8.8.8.8 | network issues, report to network team. |
+| errors in logs** | read them well, they usually tell exactly what was wrong. |
+| failed services** |  `systemctl status` to find out why it crashed. |
 
 ```
 
@@ -405,7 +438,7 @@ exp : "i have checked X, Y, Z and they look ok. i am now diving into more detail
 
 ---
 
-## Common slowness causes in real work environments
+## common slowness causes in real work environments
 ```
 1 runaway process eating 100% CPU
 2 memory leak slowly consuming all RAM until swap kicks in
