@@ -25,7 +25,7 @@ the web root is controlled in the nginx config file:
 /etc/nginx/nginx.conf
 ```
 
-look for the root directive inside the server block:
+look for the root directives inside the server block:
 
 ```bash
 server {
@@ -314,9 +314,19 @@ final commands list table
 | **apply policy** | `sudo restorecon -R -v /var/www/myapp/` | live syncs on-disk folder labels to match the permanent policy database. |
 
 
-
-
-
-
-
+--------------
+# firewall, firewalld, SElinux and nftables
+firewalld is not a firewall itself. Its a management tool a friendly interface that lets admins control the actual firewall rules without doing complicated things.The actual firewall doing the real work underneath is called nftables (in older systems they used iptables). Thats the kernel level thing actually blocking and allowing traffic.
+nftables    = the actual lock on the door
+firewalld   = the remote control for the lock
+Admins could talk directly to nftables but the syntax is horrible and complex. firewalld makes it human friendly. Thats why its better to use commands like
+```
+sudo firewall-cmd --add-service=http
+```
+### why we need a firewall at all if SELinux is already protecting things?
+#### main differences
+firewalld    = controls network traffic. who can even knock on the door.
+SELinux      = controls what processes can do once inside the system.
+firewall stops attackers from reaching the services in the first place.
+SELinux stops processes from doing things they shouldnt even if theyre already running. 
 
