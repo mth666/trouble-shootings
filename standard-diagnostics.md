@@ -1,6 +1,6 @@
 # Server Slowness scenario standard Diagnostics and plan
 
-scenario: Someone reported that the server is slow 
+scenario: someone reports that the server is slow 
 
 ---
 
@@ -453,6 +453,6 @@ exp : "i have checked X, Y, Z and they look ok. i am now diving into more detail
 
     external attacks like DDoS attack overwhelming the network
 
-    cron job running at peak hours using system resources
+    cron jobs running at peak hours using system resources
 
 ---
